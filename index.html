@@ -1,0 +1,1563 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f172a">
+<title>Gillani Gas Point -- Pro v5.8</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- Supabase with fallback -->
+<script>
+(function(){
+  function loadSupabase(primary, fallback){
+    var s = document.createElement('script');
+    s.src = primary;
+    s.onerror = function(){
+      console.warn('[GGP] Primary Supabase CDN failed, trying fallback...');
+      var s2 = document.createElement('script');
+      s2.src = fallback;
+      s2.onerror = function(){ console.error('[GGP] Both Supabase CDNs failed'); };
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s);
+  }
+  loadSupabase(
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js',
+    'https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js'
+  );
+})();
+</script>
+<style>
+@font-face{font-family:'Outfit';font-style:normal;font-display:swap;font-weight:100 900;src:url(https://cdn.jsdelivr.net/fontsource/fonts/outfit:vf@latest/latin-wght-normal.woff2) format('woff2-variations');}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100dvh;overscroll-behavior:none;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+input,select,textarea,button{font-family:inherit;outline:none}
+input,select,textarea{background:#0f172a;border:1.5px solid #334155;color:#e2e8f0;border-radius:8px;padding:8px 10px;font-size:14px;width:100%;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:#f97316;box-shadow:0 0 0 2px rgba(249,115,22,.15)}
+input::placeholder{color:#64748b}
+.btn-primary{background:#f97316;color:#fff;font-weight:700;border:none;border-radius:10px;padding:12px 16px;font-size:15px;cursor:pointer;transition:transform .12s;width:100%;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-danger{background:#ef4444;color:#fff;font-weight:600;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+.btn-ghost{background:transparent;border:1.5px solid #334155;color:#94a3b8;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600}
+.card{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:14px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(15,23,42,.85);backdrop-filter:blur(16px);border-top:1px solid #1e293b;display:flex;align-items:center;justify-content:space-around;z-index:100}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:none;background:none;color:#64748b;cursor:pointer;font-size:10px;font-weight:600;min-width:60px}
+.nav-btn.active{color:#f97316}
+.nav-btn svg{width:22px;height:22px}
+.tab-content{display:none;padding:14px;max-width:480px;margin:0 auto}
+.tab-content.active{display:block}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#1e293b;border-top-left-radius:20px;border-top-right-radius:20px;width:100%;max-width:480px;max-height:90dvh;overflow-y:auto;padding:20px 16px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.toast-container{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:360px}
+.toast{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#e2e8f0;pointer-events:auto;display:flex;align-items:center;gap:8px}
+.search-wrap{position:sticky;top:0;z-index:10;padding:8px 0 10px;background:linear-gradient(to bottom,#0f172a 70%,transparent)}
+.amount-input{border-color:#f97316!important;font-weight:700;font-size:16px!important;color:#4ade80!important}
+.delete-confirm-input{text-align:center;font-weight:700;letter-spacing:2px}
+@keyframes shinyGlowBlink{0%,100%{opacity:1;color:#4ade80;text-shadow:0 0 6px #22c55e,0 0 12px #4ade80}33%{opacity:.7;color:#38bdf8;text-shadow:0 0 6px #0284c7,0 0 12px #38bdf8}66%{opacity:.9;color:#a3e635;text-shadow:0 0 6px #65a30d,0 0 12px #a3e635}50%{opacity:.35}}
+.creator-glow-text{animation:shinyGlowBlink 3.5s ease-in-out infinite;display:inline-block}
+#miniCat{position:fixed;top:80px;left:20px;z-index:99;pointer-events:none;font-size:26px;transition:left 3.5s cubic-bezier(.25,.1,.25,1),top 3.5s cubic-bezier(.25,.1,.25,1);filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));user-select:none}
+@keyframes catBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.cat-body{display:inline-block;animation:catBob .4s infinite alternate}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}
+
+/* ===== AUTH OVERLAY -- bulletproof ===== */
+#authOverlay{
+  position:fixed!important;
+  inset:0!important;
+  z-index:9999!important;
+  background:rgba(5,7,12,.97)!important;
+  -webkit-backdrop-filter:blur(20px)!important;
+  backdrop-filter:blur(20px)!important;
+  display:none;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:20px!important;
+  overflow-y:auto!important;
+}
+#authOverlay.show{display:flex!important;}
+.auth-box{
+  width:100%!important;
+  max-width:400px!important;
+  background:linear-gradient(180deg,#1e293b,#0f172a)!important;
+  border:1px solid #334155!important;
+  border-radius:22px!important;
+  padding:24px 22px!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.6)!important;
+  margin:auto!important;
+  color:#e2e8f0!important;
+}
+.auth-logo{width:64px;height:64px;margin:0 auto 14px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f97316,#ea580c);box-shadow:0 14px 32px rgba(249,115,22,.45);font-size:28px;color:#fff}
+.auth-box h1{margin:0 0 6px;text-align:center;font-size:20px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.auth-sub{margin:0 0 18px;text-align:center;font-size:12.5px;color:#94a3b8;line-height:1.5}
+.auth-tabs{display:flex;gap:6px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px;margin-bottom:16px}
+.auth-tab{flex:1;padding:10px;border-radius:9px;border:none;background:transparent;color:#94a3b8;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.auth-tab.active{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;box-shadow:0 6px 16px rgba(249,115,22,.35)}
+.auth-field{display:block;margin-bottom:12px}
+.auth-field span{display:block;font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#94a3b8;margin-bottom:6px}
+.auth-field input{width:100%!important;padding:12px 14px!important;border-radius:12px!important;border:1.5px solid #334155!important;background:#0f172a!important;color:#e2e8f0!important;font-size:14.5px!important}
+.auth-field input:focus{border-color:#f97316!important;box-shadow:0 0 0 3px rgba(249,115,22,.15)!important}
+.auth-msg{padding:10px 14px;border-radius:11px;font-size:12px;line-height:1.5;margin-bottom:12px;display:none;white-space:pre-wrap;word-break:break-word}
+.auth-msg.show{display:block!important}
+.auth-msg.error{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.35)}
+.auth-msg.ok{background:rgba(34,197,94,.15);color:#6ee7a0;border:1px solid rgba(34,197,94,.35)}
+.auth-msg.info{background:rgba(249,115,22,.15);color:#fdba74;border:1px solid rgba(249,115,22,.35)}
+.auth-forgot{background:none;border:none;color:#fdba74;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;padding:9px;width:100%;text-decoration:underline}
+.auth-skip{background:none;border:none;color:#94a3b8;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;padding:12px 10px 0;width:100%}
+.auth-status{display:flex;align-items:center;gap:6px;justify-content:center;font-size:10.5px;color:#64748b;margin-top:12px;padding-top:12px;border-top:1px solid #334155}
+.auth-status .dot{width:7px;height:7px;border-radius:50%;background:#64748b;flex:0 0 7px}
+.auth-status .dot.on{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.8)}
+.auth-status .dot.err{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.8)}
+.auth-status .dot.loading{background:#f59e0b;animation:cloudPulse 1s ease-in-out infinite}
+@keyframes cloudPulse{0%,100%{opacity:1}50%{opacity:.3}}
+.auth-test{background:none;border:1px solid #334155;color:#94a3b8;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit;padding:6px 10px;border-radius:8px;margin-top:10px;width:100%}
+.auth-test:hover{color:#f97316;border-color:#f97316}
+
+/* Cloud status in Settings */
+.cloud-status-row{display:flex;align-items:center;gap:8px;padding:11px 13px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid #334155;margin-bottom:10px}
+.cloud-status-row .dot{width:9px;height:9px;border-radius:50%;background:#64748b;flex-shrink:0}
+.cloud-status-row .dot.on{background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.8)}
+.cloud-status-row .dot.sync{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,.8);animation:cloudPulse 1s ease-in-out infinite}
+.cloud-status-row .dot.err{background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.8)}
+.cloud-status-row .info{flex:1;min-width:0}
+.cloud-status-row .t{font-size:13px;font-weight:700;color:#fff}
+.cloud-status-row .d{font-size:10.5px;color:#94a3b8;margin-top:2px;word-break:break-all}
+.toggle-switch{position:relative;display:inline-block;width:48px;height:26px;flex:0 0 48px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-switch .sl{position:absolute;cursor:pointer;inset:0;background:#475569;border-radius:26px;transition:.25s}
+.toggle-switch .sl:before{position:absolute;content:"";height:18px;width:18px;left:4px;bottom:4px;background:#fff;border-radius:50%;transition:.25s}
+.toggle-switch input:checked + .sl{background:#f97316}
+.toggle-switch input:checked + .sl:before{transform:translateX(22px)}
+</style>
+</head>
+<body>
+
+<div id="miniCat"><span class="cat-body" id="catSprite">🐱</span></div>
+
+<header class="sticky top-0 z-50 px-4 py-2.5" style="background:rgba(15,23,42,.9);backdrop-filter:blur(12px);border-bottom:1px solid #1e293b">
+  <div class="max-w-[480px] mx-auto flex items-center justify-between">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.5"><path d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-sm font-extrabold tracking-tight text-white leading-none">GILLANI GAS POINT</h1>
+        <p class="text-[11px] font-extrabold creator-glow-text mt-0.5" id="creatorSubtitle">App Creator Junaid Gillani</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="cloudHeaderBtn" onclick="openCloudPanel()" title="Cloud Sync" style="background:rgba(255,255,255,.06);border:1px solid #334155;border-radius:10px;padding:6px 9px;cursor:pointer;color:#94a3b8;font-size:15px">☁️</button>
+      <div class="text-[10px] text-slate-600 font-mono" id="headerClock"></div>
+    </div>
+  </div>
+</header>
+
+<div class="toast-container" id="toastBox"></div>
+
+<!-- TAB 1: NAYI SLIP -->
+<div class="tab-content active" id="tabSlip">
+  <div class="mb-3"><h2 class="text-base font-bold text-white">📄 Nayi Slip Banayein</h2></div>
+  <div class="card mb-3">
+    <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+      <input type="text" id="slipName" placeholder="Customer Name">
+      <input type="text" id="slipAmount" placeholder="Amount (Rs.)" inputmode="numeric" class="amount-input">
+    </div>
+    <div class="grid grid-cols-2 gap-2.5 mb-3">
+      <input type="tel" id="slipPhone" placeholder="Phone / WhatsApp">
+      <input type="text" id="slipNote" placeholder="Extra Note">
+    </div>
+    <button class="btn-primary" onclick="generateSlipPreview()">🖨️ SLIP PRINT KAREN</button>
+  </div>
+</div>
+
+<!-- TAB 2: HISTORY -->
+<div class="tab-content" id="tabHistory">
+  <div class="mb-3"><h2 class="text-base font-bold text-white">🕐 Bill History</h2></div>
+  <div class="search-wrap">
+    <div class="flex gap-2">
+      <input type="text" id="historySearch" placeholder="Search..." oninput="renderHistory()" class="flex-1">
+      <button class="btn-danger text-xs px-3" onclick="clearAllSlips()">Clear All</button>
+    </div>
+  </div>
+  <div id="historyList" class="flex flex-col gap-2"></div>
+  <div id="historyEmpty" class="text-center py-10 text-slate-500 text-sm hidden"><p>📭 Koi bill nahi mila</p></div>
+</div>
+
+<!-- TAB 3: CONTACTS -->
+<div class="tab-content" id="tabContacts">
+  <div class="mb-3"><h2 class="text-base font-bold text-white">👥 Contacts</h2></div>
+  <div class="card mb-3">
+    <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+      <input type="text" id="contactName" placeholder="Naam">
+      <input type="tel" id="contactPhone" placeholder="Phone Number">
+    </div>
+    <button class="btn-primary" onclick="addContact()" style="padding:10px">➕ Contact Save Karen</button>
+  </div>
+  <div class="search-wrap"><input type="text" id="contactSearch" placeholder="Contact dhundein..." oninput="renderContacts()"></div>
+  <div id="contactList" class="flex flex-col gap-2"></div>
+  <div id="contactEmpty" class="text-center py-10 text-slate-500 text-sm hidden"><p>📭 Koi contact nahi mila</p></div>
+</div>
+
+<!-- TAB 4: SETTINGS -->
+<div class="tab-content" id="tabSettings">
+  <div class="mb-3"><h2 class="text-base font-bold text-white">⚙️ Settings & Design</h2></div>
+
+  <!-- CLOUD SYNC CARD -->
+  <div class="card mb-3" style="border-left:3px solid #22c55e">
+    <h3 class="text-sm font-bold text-white mb-2">☁️ Cloud Sync (Supabase)</h3>
+    <div class="cloud-status-row">
+      <span class="dot" id="cloudStatusDot"></span>
+      <div class="info">
+        <div class="t" id="cloudStatusTitle">Loading...</div>
+        <div class="d" id="cloudStatusDesc">Checking...</div>
+      </div>
+    </div>
+    <div id="cloudLoggedOutBtns">
+      <button class="btn-primary w-full text-xs mb-2" onclick="openAuthOverlay()" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🔑 Login / Sign Up</button>
+      <button class="btn-ghost w-full text-xs" onclick="testConnection()">🔍 Test Connection</button>
+    </div>
+    <div id="cloudLoggedInBtns" style="display:none">
+      <div class="flex items-center justify-between mb-2.5 px-1">
+        <span class="text-xs text-slate-300 font-semibold">Auto-Sync</span>
+        <label class="toggle-switch"><input type="checkbox" id="cloudAutoSyncToggle" onchange="toggleAutoSync(this.checked)"><span class="sl"></span></label>
+      </div>
+      <div class="flex flex-col gap-2">
+        <button class="btn-primary w-full text-xs" onclick="cloudBackup(false)" style="background:linear-gradient(135deg,#22c55e,#16a34a)">☁️ Backup to Cloud</button>
+        <button class="btn-primary w-full text-xs" onclick="cloudRestore(false)" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">⬇️ Restore from Cloud</button>
+        <button class="btn-ghost w-full text-xs" onclick="handleLogout()" style="border-color:rgba(239,68,68,.3);color:#fca5a5">🚪 Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install -->
+  <div class="card mb-3" style="border-left:3px solid #f97316">
+    <h3 class="text-sm font-bold text-white mb-1">📲 App Install Karen</h3>
+    <p class="text-[11px] text-slate-400 mb-2.5">Home screen par install karein.</p>
+    <button class="btn-primary w-full text-xs" id="installSettingsBtn" onclick="installPWA()">📥 Install App</button>
+  </div>
+
+  <!-- Design Presets -->
+  <div class="card mb-3">
+    <h3 class="text-sm font-bold text-white mb-2.5">🎨 Slip Design Preset</h3>
+    <div class="grid grid-cols-3 gap-2 mb-2" id="presetGrid"></div>
+  </div>
+
+  <!-- Custom Editor -->
+  <div class="card mb-3 hidden" id="customEditorCard">
+    <div class="flex items-center justify-between mb-2.5 cursor-pointer" onclick="toggleCustomEditor()">
+      <h3 class="text-sm font-bold text-white">✏️ Custom Design Editor</h3>
+      <svg id="customEditorArrow" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="2" style="transition:transform .2s"><path d="M19 9l-7 7-7-7"/></svg>
+    </div>
+    <div id="customEditorBody" class="hidden">
+      <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+        <input type="text" id="ceShopName" placeholder="Shop Name" value="GILLANI GAS POINT">
+        <input type="text" id="ceSubtitle" placeholder="Subtitle" value="LPG Gas Supplier">
+      </div>
+      <input type="text" id="ceFooter" placeholder="Footer" class="mb-2.5" value="Shukriya! Phir Aana 😊">
+      <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+        <select id="ceFont"><option value="'Courier New',monospace">Courier</option><option value="'Outfit',sans-serif">Outfit</option><option value="Georgia,serif">Georgia</option></select>
+        <select id="ceBorder"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="double">Double</option><option value="none">None</option></select>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+        <label class="text-xs text-slate-400">BG Color<input type="color" id="ceBgColor" value="#ffffff" class="w-full h-8 rounded mt-1"></label>
+        <label class="text-xs text-slate-400">Text Color<input type="color" id="ceTextColor" value="#1a1a1a" class="w-full h-8 rounded mt-1"></label>
+      </div>
+      <button class="btn-primary" onclick="saveCustomDesign()" style="padding:10px;font-size:13px">Save Custom Design</button>
+    </div>
+  </div>
+
+  <!-- Shop Numbers -->
+  <div class="card mb-3">
+    <h3 class="text-sm font-bold text-white mb-2.5">📞 Dukaan Ke Numbers</h3>
+    <div id="shopNumbersList" class="flex flex-col gap-2 mb-2.5"></div>
+    <div class="grid grid-cols-2 gap-2.5 mb-2.5">
+      <input type="text" id="shopNumName" placeholder="Naam">
+      <input type="tel" id="shopNumPhone" placeholder="Phone">
+    </div>
+    <button class="btn-ghost w-full mb-2.5" onclick="addShopNumber()" style="font-size:12px">+ Number Add Karen</button>
+    <div class="flex items-center justify-between">
+      <span class="text-xs text-slate-400">Slip Pe Dikhayen?</span>
+      <label class="toggle-switch"><input type="checkbox" id="showShopNums" onchange="saveSettings()"><span class="sl"></span></label>
+    </div>
+  </div>
+
+  <!-- Text Size -->
+  <div class="card mb-3">
+    <h3 class="text-sm font-bold text-white mb-2.5">📏 Slip Text Size</h3>
+    <div class="flex items-center gap-3">
+      <span class="text-xs text-slate-400">Chhota</span>
+      <input type="range" id="textSizeSlider" min="80" max="140" value="100" step="10" class="flex-1" oninput="updateTextSize()">
+      <span class="text-xs text-slate-400">Bara</span>
+    </div>
+    <div class="flex items-center justify-between mt-2">
+      <span class="text-xs text-slate-500">Current: <span id="textSizeValue" class="text-orange-400 font-bold">100%</span></span>
+      <button class="text-xs text-orange-400 font-semibold" onclick="resetTextSize()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Data Management -->
+  <div class="card mb-3">
+    <h3 class="text-sm font-bold text-white mb-2.5">💾 Data Management</h3>
+    <div class="flex flex-col gap-2">
+      <button class="btn-primary w-full text-xs" onclick="downloadStandaloneHTML()" style="background:linear-gradient(135deg,#f97316,#ea580c)">🌐 Download Full HTML</button>
+      <button class="btn-ghost w-full text-xs" onclick="downloadBackup()">📦 ZIP Backup Download</button>
+      <label class="btn-ghost w-full text-center cursor-pointer text-xs">📤 Restore (ZIP / JSON)<input type="file" accept=".zip,.json,.txt" onchange="restoreBackup(event)" class="hidden"></label>
+      <button class="btn-ghost w-full text-xs" onclick="openRecycleBin()">🗑️ Recycle Bin</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('tabSlip',this)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Slip</span></button>
+  <button class="nav-btn" onclick="switchTab('tabHistory',this)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>History</span></button>
+  <button class="nav-btn" onclick="switchTab('tabContacts',this)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span>Contacts</span></button>
+  <button class="nav-btn" onclick="switchTab('tabSettings',this)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg><span>Settings</span></button>
+</nav>
+
+<!-- Slip Modal -->
+<div class="modal-overlay" id="slipModal">
+  <div class="modal-box">
+    <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-white">📄 Slip Preview</h3><button onclick="closeModal('slipModal')" class="text-slate-400 text-xl p-1">&times;</button></div>
+    <div class="overflow-auto" style="max-height:60dvh"><div id="receiptRender" class="flex justify-center py-2"></div></div>
+    <div class="mt-3"><button class="btn-primary" onclick="shareSlipPNG()">📤 Share PNG</button></div>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="historyDetailModal">
+  <div class="modal-box">
+    <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-white">📄 Bill Detail</h3><button onclick="closeModal('historyDetailModal')" class="text-slate-400 text-xl p-1">&times;</button></div>
+    <div class="overflow-auto" style="max-height:55dvh"><div id="historyReceiptRender" class="flex justify-center py-2"></div></div>
+    <div class="mt-3 flex gap-2">
+      <button class="btn-primary flex-1" onclick="shareHistoryPNG()">📤 Share PNG</button>
+      <button class="btn-ghost flex-1" onclick="shareHistoryWhatsApp()">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box" style="max-width:360px;margin:auto;border-radius:16px">
+    <div class="text-center mb-3">
+      <div class="text-3xl mb-2">⚠️</div>
+      <h3 class="text-base font-bold text-white mb-1" id="deleteTitle">Delete Confirm</h3>
+      <p class="text-xs text-slate-400" id="deleteMsg">Type "ok" to confirm</p>
+    </div>
+    <input type="text" id="deleteConfirmInput" placeholder='Type "ok"' class="delete-confirm-input mb-3">
+    <div class="flex gap-2">
+      <button class="btn-ghost flex-1" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn-danger flex-1" onclick="executeDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recycle Bin Modal -->
+<div class="modal-overlay" id="recycleBinModal">
+  <div class="modal-box">
+    <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-white">🗑️ Recycle Bin</h3><button onclick="closeModal('recycleBinModal')" class="text-slate-400 text-xl p-1">&times;</button></div>
+    <div class="flex gap-2 mb-3">
+      <button class="btn-ghost flex-1 text-xs" id="trashSlipsBtn" onclick="switchTrashView('slips')" style="border-color:#f97316;color:#f97316">Deleted Slips</button>
+      <button class="btn-ghost flex-1 text-xs" id="trashContactsBtn" onclick="switchTrashView('contacts')">Deleted Contacts</button>
+    </div>
+    <div id="trashContent" class="flex flex-col gap-2" style="max-height:50dvh;overflow-y:auto"></div>
+    <div class="mt-3"><button class="btn-danger w-full" onclick="emptyTrash()">🗑️ Empty Trash</button></div>
+  </div>
+</div>
+
+<!-- Install Help Modal -->
+<div class="modal-overlay" id="installHelpModal">
+  <div class="modal-box" style="max-width:400px;margin:auto;border-radius:16px">
+    <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-white">📲 Install Kaise Karen</h3><button onclick="closeModal('installHelpModal')" class="text-slate-400 text-xl p-1">&times;</button></div>
+    <div id="installHelpBody" class="text-sm text-slate-300 leading-relaxed"></div>
+    <button class="btn-primary mt-4" onclick="closeModal('installHelpModal')">Samajh Gaya</button>
+  </div>
+</div>
+
+<!-- Cloud Panel Modal -->
+<div class="modal-overlay" id="cloudPanelModal">
+  <div class="modal-box">
+    <div class="flex items-center justify-between mb-3"><h3 class="text-base font-bold text-white">☁️ Cloud Sync</h3><button onclick="closeModal('cloudPanelModal')" class="text-slate-400 text-xl p-1">&times;</button></div>
+    <div id="cloudPanelBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════ AUTH OVERLAY ═══════════ -->
+<div id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-logo">⛽</div>
+    <h1>Gillani Gas Point</h1>
+    <p class="auth-sub" id="authSub">Login karke apna data cloud pe sync karein</p>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-mode="login">Login</button>
+      <button type="button" class="auth-tab" data-mode="signup">Sign Up</button>
+    </div>
+    <div class="auth-msg" id="authMsg"></div>
+    <label class="auth-field">
+      <span>Email</span>
+      <input id="authEmail" type="email" placeholder="you@example.com" autocomplete="email" autocapitalize="off" spellcheck="false"/>
+    </label>
+    <label class="auth-field">
+      <span>Password</span>
+      <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </label>
+    <button class="btn-primary" id="authSubmitBtn" style="margin-top:4px">Login</button>
+    <button class="auth-forgot" id="authForgotBtn" type="button">Forgot password?</button>
+    <button class="auth-skip" id="authSkipBtn" type="button">Continue offline (cloud sync nahi) →</button>
+    <div class="auth-status">
+      <span class="dot" id="authStatusDot"></span>
+      <span id="authStatusText">Checking connection...</span>
+    </div>
+    <button class="auth-test" id="authTestBtn" type="button">🔍 Test Connection</button>
+  </div>
+</div>
+
+<script id="embeddedDataStore" type="application/json">{}</script>
+
+<script>
+// ============================================================
+// SUPABASE CONFIG
+// ============================================================
+var SUPABASE_URL = 'https://xcwcuhjycpshgycnvmyu.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_JhjDWCc8VrbjXOPFCKMO4g_w1HhgP_4';
+var OFFLINE_MODE_KEY = 'ggp_offline_mode';
+var SYNC_ENABLED_KEY = 'ggp_sync_enabled';
+var SYNC_LAST_KEY    = 'ggp_sync_last';
+
+// ===== RANDOM HUE =====
+(function(){
+  var h = Math.floor(Math.random()*360);
+  var el = document.getElementById('creatorSubtitle');
+  if(el) el.style.filter = 'hue-rotate('+h+'deg)';
+})();
+
+// ===== WANDERING CAT =====
+(function(){
+  var cat = document.getElementById('miniCat');
+  var sprite = document.getElementById('catSprite');
+  if(!cat||!sprite) return;
+  var cx=20, cy=80;
+  function move(){
+    var mx=Math.max(100,window.innerWidth-60), my=Math.max(150,window.innerHeight-120);
+    var nx=Math.max(10,Math.floor(Math.random()*mx)), ny=Math.max(70,Math.floor(Math.random()*my));
+    sprite.style.transform = (nx<cx)?'scaleX(1)':'scaleX(-1)';
+    cx=nx; cy=ny;
+    cat.style.left=nx+'px'; cat.style.top=ny+'px';
+    setTimeout(move, 3000+Math.random()*3000);
+  }
+  setTimeout(move,1000);
+})();
+
+// ===== LOCAL STORAGE KEYS =====
+var LS={
+  slips:'ggp_slips',contacts:'ggp_contacts',settings:'ggp_settings',
+  customDesign:'ggp_custom_design',shopNumbers:'ggp_shop_numbers',
+  deletedSlips:'ggp_deleted_slips',deletedContacts:'ggp_deleted_contacts',
+  counter:'ggp_counter'
+};
+
+// ===== EMBEDDED DATA =====
+(function restoreEmbedded(){
+  try{
+    var el=document.getElementById('embeddedDataStore');
+    if(!el||!el.textContent.trim())return;
+    var emb=JSON.parse(el.textContent.trim());
+    if(emb&&typeof emb==='object'){
+      ['ggp_slips','ggp_contacts','ggp_settings','ggp_custom_design','ggp_shop_numbers','ggp_deleted_slips','ggp_deleted_contacts','ggp_counter'].forEach(function(k){
+        if(emb[k]!==undefined)localStorage.setItem(k,JSON.stringify(emb[k]));
+      });
+    }
+  }catch(e){console.error('Embedded restore error:',e);}
+})();
+
+// ===== INDEXEDDB =====
+var IDB_NAME='GGP_Database', IDB_VERSION=1, IDB_STORE='app_store';
+function openIDB(){return new Promise(function(resolve,reject){
+  var r=indexedDB.open(IDB_NAME,IDB_VERSION);
+  r.onupgradeneeded=function(e){var db=e.target.result;if(!db.objectStoreNames.contains(IDB_STORE))db.createObjectStore(IDB_STORE);};
+  r.onsuccess=function(e){resolve(e.target.result)};
+  r.onerror=function(e){reject(e.target.error)};
+});}
+function idbSet(key,value){return openIDB().then(function(db){return new Promise(function(resolve,reject){
+  var tx=db.transaction(IDB_STORE,'readwrite');var st=tx.objectStore(IDB_STORE);
+  var req=st.put(value,key);req.onsuccess=function(){resolve(true)};req.onerror=function(){reject(req.error)};
+});}).catch(function(e){console.error('IDB Set:',e)});}
+function idbGet(key){return openIDB().then(function(db){return new Promise(function(resolve,reject){
+  var tx=db.transaction(IDB_STORE,'readonly');var st=tx.objectStore(IDB_STORE);
+  var req=st.get(key);req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error)};
+});}).catch(function(e){console.error('IDB Get:',e);return null;});}
+
+function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){
+  try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}
+  idbSet(k,v);
+  if(typeof scheduleCloudSync==='function')scheduleCloudSync();
+}
+
+// ===== STATE =====
+var appSlips=lsGet(LS.slips,[]);
+var appContacts=lsGet(LS.contacts,[]);
+var appSettings=lsGet(LS.settings,{preset:'thermal_mega',showShopNums:true,textScale:100});
+var appCustomDesign=lsGet(LS.customDesign,{shopName:'GILLANI GAS POINT',subtitle:'LPG Gas Supplier',footer:'Shukriya! Phir Aana 😊',font:"'Courier New',monospace",border:'solid',bgColor:'#ffffff',textColor:'#1a1a1a'});
+var appShopNums=lsGet(LS.shopNumbers,[]);
+var appDeletedSlips=lsGet(LS.deletedSlips,[]);
+var appDeletedContacts=lsGet(LS.deletedContacts,[]);
+var slipCounter=lsGet(LS.counter,1000);
+var currentDeleteAction=null;
+var currentHistorySlip=null;
+var currentTrashView='slips';
+
+function syncFromIndexedDB(){
+  Promise.all([idbGet(LS.slips),idbGet(LS.contacts),idbGet(LS.settings)]).then(function(r){
+    if(r[0]&&r[0].length>0&&appSlips.length===0){appSlips=r[0];try{localStorage.setItem(LS.slips,JSON.stringify(appSlips))}catch(e){}}
+    if(r[1]&&r[1].length>0&&appContacts.length===0){appContacts=r[1];try{localStorage.setItem(LS.contacts,JSON.stringify(appContacts))}catch(e){}}
+    if(r[2])appSettings=r[2];
+    idbSet(LS.slips,appSlips);idbSet(LS.contacts,appContacts);idbSet(LS.settings,appSettings);
+    idbSet(LS.customDesign,appCustomDesign);idbSet(LS.shopNumbers,appShopNums);
+    idbSet(LS.deletedSlips,appDeletedSlips);idbSet(LS.deletedContacts,appDeletedContacts);idbSet(LS.counter,slipCounter);
+  }).catch(function(e){console.error('IDB sync:',e)});
+}
+function initShopNumbers(){
+  if(appShopNums.length===0){
+    appShopNums=[{name:'Zohaib Gillani',phone:'03191483382'},{name:'Mushtaq Malik',phone:'03048907521'},{name:'Junaid Gillani',phone:'03176407904'}];
+    lsSet(LS.shopNumbers,appShopNums);
+  }
+}
+function purgeOldTrash(){
+  var now=Date.now(),th=30*24*60*60*1000;
+  appDeletedSlips=appDeletedSlips.filter(function(s){return(now-(s.deletedAt||0))<th});
+  appDeletedContacts=appDeletedContacts.filter(function(c){return(now-(c.deletedAt||0))<th});
+  lsSet(LS.deletedSlips,appDeletedSlips);lsSet(LS.deletedContacts,appDeletedContacts);
+}
+function syncCounter(){
+  var m=slipCounter;
+  appSlips.forEach(function(s){var n=parseInt(s.id);if(!isNaN(n)&&n>=m)m=n+1});
+  appDeletedSlips.forEach(function(s){var n=parseInt(s.id);if(!isNaN(n)&&n>=m)m=n+1});
+  slipCounter=m;lsSet(LS.counter,slipCounter);
+}
+initShopNumbers();purgeOldTrash();syncCounter();syncFromIndexedDB();
+
+function showToast(msg,icon){
+  icon=icon||'✅';
+  var t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML='<span>'+icon+'</span><span>'+msg+'</span>';
+  document.getElementById('toastBox').appendChild(t);
+  setTimeout(function(){t.remove()},3000);
+}
+function updateClock(){
+  var d=new Date();
+  document.getElementById('headerClock').textContent=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+setInterval(updateClock,1000);updateClock();
+
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='tabHistory')renderHistory();
+  if(id==='tabContacts')renderContacts();
+  if(id==='tabSettings'){renderPresets();renderShopNumbers();loadSettingsUI();updateCloudUI();}
+}
+
+function formatPhone(p){if(!p)return '';var d=p.replace(/\D/g,'');if(d.length===11&&d.startsWith('0'))return d.slice(0,4)+' '+d.slice(4,7)+' '+d.slice(7);return p;}
+function formatAmount(a){var n=parseInt(a);if(isNaN(n))return a;return n.toLocaleString('en-PK');}
+function getDateTime(ts){var d=new Date(ts);var m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return String(d.getDate()).padStart(2,'0')+'-'+m[d.getMonth()]+'-'+d.getFullYear()+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function waLink(p,t){var x=p.replace(/\D/g,'');if(x.startsWith('0'))x='92'+x.slice(1);return 'https://wa.me/'+x+'?text='+encodeURIComponent(t);}
+function telLink(p){return 'tel:'+p.replace(/\D/g,'');}
+
+function generateSlipPreview(){
+  var name=document.getElementById('slipName').value.trim();
+  var amount=document.getElementById('slipAmount').value.trim();
+  var phone=document.getElementById('slipPhone').value.trim();
+  var note=document.getElementById('slipNote').value.trim();
+  if(!name||!amount){showToast('Name aur Amount zaruri hain!','⚠️');return}
+  var id=slipCounter++;lsSet(LS.counter,slipCounter);
+  var slip={id:String(id),name:name,amount:amount,phone:phone,note:note,timestamp:Date.now()};
+  appSlips.unshift(slip);lsSet(LS.slips,appSlips);
+  currentHistorySlip=slip;
+  document.getElementById('receiptRender').innerHTML=buildReceipt(slip);
+  openModal('slipModal');
+  document.getElementById('slipName').value='';
+  document.getElementById('slipAmount').value='';
+  document.getElementById('slipPhone').value='';
+  document.getElementById('slipNote').value='';
+  showToast('Slip #'+id+' save ho gayi!');
+}
+
+function getScale(){return (appSettings.textScale||100)/100}
+function sz(b){return Math.round(b*getScale())}
+
+function buildReceipt(slip){
+  var preset=appSettings.preset||'thermal_mega';
+  var showNums=appSettings.showShopNums;
+  var shopNums=appShopNums;
+  var dt=getDateTime(slip.timestamp);
+  var fph=formatPhone(slip.phone);
+  var fa=formatAmount(slip.amount);
+  var nh='';
+  if(showNums&&shopNums.length>0){
+    nh='<div style="margin-top:8px;padding-top:6px;border-top:1px dashed #999"><div style="font-size:'+sz(11)+'px;text-align:center;margin-bottom:4px;font-weight:800">📞 Contact Numbers</div>';
+    shopNums.forEach(function(n){nh+='<div style="font-size:'+sz(12)+'px;text-align:center;font-weight:700">'+n.name+': '+formatPhone(n.phone)+'</div>';});
+    nh+='</div>';
+  }
+  if(preset==='thermal_pro')return rThermalPro(slip,dt,fph,fa,nh);
+  if(preset==='modern')return rModern(slip,dt,fph,fa,nh);
+  if(preset==='classic')return rClassic(slip,dt,fph,fa,nh);
+  if(preset==='custom')return rCustom(slip,dt,fph,fa,nh);
+  return rThermalMega(slip,dt,fph,fa,nh);
+}
+function rThermalMega(s,dt,ph,amt,nums){
+  return '<div style="width:260px;background:#fff;color:#000;padding:14px 16px;font-family:\'Courier New\',monospace">'+
+    '<div style="text-align:center;font-size:'+sz(22)+'px;font-weight:900;letter-spacing:1px;line-height:1.1">GILLANI<br>GAS POINT</div>'+
+    '<div style="text-align:center;font-size:'+sz(10)+'px;color:#555;margin:3px 0 8px;font-weight:600">LPG Gas Supplier</div>'+
+    '<div style="border-top:2px solid #000;border-bottom:2px solid #000;padding:4px 0;text-align:center;font-size:'+sz(12)+'px;font-weight:700;margin-bottom:8px">'+dt+'</div>'+
+    '<div style="text-align:center;font-size:'+sz(14)+'px;font-weight:800;margin-bottom:8px">Bill # '+s.id+'</div>'+
+    '<div style="font-size:'+sz(18)+'px;font-weight:900;margin-bottom:4px;background:#f5f5f5;padding:6px 8px;border-radius:4px">👤 '+s.name+'</div>'+
+    '<div style="font-size:'+sz(32)+'px;font-weight:900;text-align:center;margin:10px 0;letter-spacing:1px;background:#000;color:#fff;padding:8px;border-radius:6px">Rs. '+amt+'</div>'+
+    (ph?'<div style="font-size:'+sz(16)+'px;text-align:center;margin-bottom:4px;font-weight:800;background:#f0f0f0;padding:5px;border-radius:4px">📞 '+ph+'</div>':'')+
+    (s.note?'<div style="font-size:'+sz(13)+'px;text-align:center;color:#444;margin-bottom:4px;font-weight:600">📝 '+s.note+'</div>':'')+
+    nums+
+    '<div style="border-top:2px dashed #000;margin-top:10px;padding-top:6px;text-align:center;font-size:'+sz(12)+'px;font-weight:700">Shukriya! Phir Aana 😊</div></div>';
+}
+function rThermalPro(s,dt,ph,amt,nums){
+  return '<div style="width:260px;background:#fff;color:#000;padding:12px 14px;font-family:\'Courier New\',monospace">'+
+    '<div style="text-align:center;font-size:'+sz(18)+'px;font-weight:900;border-bottom:2px solid #000;padding-bottom:5px;margin-bottom:5px">GILLANI GAS POINT</div>'+
+    '<table style="width:100%;font-size:'+sz(13)+'px;border-collapse:collapse">'+
+    '<tr><td style="padding:3px 0;font-weight:800">Bill #</td><td style="text-align:right;font-weight:700">'+s.id+'</td></tr>'+
+    '<tr><td style="padding:3px 0;font-weight:800">Date</td><td style="text-align:right">'+dt+'</td></tr>'+
+    '<tr style="background:#f5f5f5"><td style="padding:5px;font-weight:800">Name</td><td style="text-align:right;font-weight:900;font-size:'+sz(15)+'px">'+s.name+'</td></tr>'+
+    (ph?'<tr><td style="padding:3px 0;font-weight:800">Phone</td><td style="text-align:right;font-weight:700">'+ph+'</td></tr>':'')+
+    '</table>'+
+    '<div style="border-top:2px dashed #000;border-bottom:2px dashed #000;margin:8px 0;padding:8px 0;text-align:center;font-size:'+sz(28)+'px;font-weight:900">Rs. '+amt+'</div>'+
+    nums+
+    '<div style="text-align:center;font-size:'+sz(11)+'px;margin-top:8px;font-weight:600">Shukriya! Phir Aana 😊</div></div>';
+}
+function rModern(s,dt,ph,amt,nums){
+  return '<div style="width:260px;background:#0f172a;color:#e2e8f0;padding:16px;font-family:system-ui;border-radius:12px">'+
+    '<div style="text-align:center;font-size:'+sz(20)+'px;font-weight:800;color:#f97316">GILLANI GAS POINT</div>'+
+    '<div style="text-align:center;font-size:'+sz(10)+'px;color:#64748b;margin-bottom:10px">LPG Gas Supplier</div>'+
+    '<div style="background:#1e293b;border-radius:10px;padding:10px;margin-bottom:8px;border:1px solid #334155">'+
+    '<div style="display:flex;justify-content:space-between;font-size:'+sz(11)+'px;color:#94a3b8;margin-bottom:5px"><span>Bill #'+s.id+'</span><span>'+dt+'</span></div>'+
+    '<div style="font-size:'+sz(18)+'px;font-weight:800;color:#fff">'+s.name+'</div>'+
+    (ph?'<div style="font-size:'+sz(15)+'px;color:#f97316;font-weight:700">📞 '+ph+'</div>':'')+'</div>'+
+    '<div style="text-align:center;font-size:'+sz(30)+'px;font-weight:900;color:#4ade80;margin:10px 0;background:#1e293b;padding:10px;border-radius:10px;border:2px solid #4ade80">Rs. '+amt+'</div>'+
+    nums+
+    '<div style="text-align:center;font-size:'+sz(11)+'px;color:#64748b;margin-top:10px;border-top:1px solid #334155;padding-top:6px">Shukriya! Phir Aana 😊</div></div>';
+}
+function rClassic(s,dt,ph,amt,nums){
+  return '<div style="width:260px;background:#fffef5;color:#2c1810;padding:14px;font-family:Georgia,serif;border:3px double #8b7355">'+
+    '<div style="text-align:center;font-size:'+sz(20)+'px;font-weight:900;border-bottom:2px double #8b7355;padding-bottom:6px;margin-bottom:6px;font-style:italic">Gillani Gas Point</div>'+
+    '<div style="text-align:center;font-size:'+sz(10)+'px;color:#8b7355;margin-bottom:8px">-- LPG Gas Supplier --</div>'+
+    '<div style="text-align:center;font-size:'+sz(12)+'px;margin-bottom:6px;font-weight:600">'+dt+'</div>'+
+    '<div style="border:2px solid #8b7355;padding:8px;margin-bottom:8px;background:#fffdf0">'+
+    '<div style="font-size:'+sz(13)+'px;font-weight:700">Receipt: #'+s.id+'</div>'+
+    '<div style="font-size:'+sz(17)+'px;font-weight:900">'+s.name+'</div>'+
+    (ph?'<div style="font-size:'+sz(14)+'px;font-weight:700">Tel: '+ph+'</div>':'')+'</div>'+
+    '<div style="text-align:center;font-size:'+sz(28)+'px;font-weight:900;margin:8px 0;font-style:italic;background:#8b7355;color:#fff;padding:8px">Rs. '+amt+'</div>'+
+    nums+
+    '<div style="text-align:center;font-size:'+sz(11)+'px;border-top:2px double #8b7355;padding-top:6px;margin-top:8px;font-style:italic;color:#8b7355">Shukriya! Phir Aana 😊</div></div>';
+}
+function rCustom(s,dt,ph,amt,nums){
+  var c=appCustomDesign;
+  return '<div style="width:260px;background:'+c.bgColor+';color:'+c.textColor+';padding:14px 16px;font-family:'+c.font+';'+(c.border!=='none'?'border:2px '+c.border+' '+c.textColor:'')+'">'+
+    '<div style="text-align:center;font-size:'+sz(20)+'px;font-weight:900;line-height:1.1;margin-bottom:3px">'+(c.shopName||'GILLANI GAS POINT')+'</div>'+
+    '<div style="text-align:center;font-size:'+sz(10)+'px;opacity:.7;margin-bottom:8px">'+(c.subtitle||'LPG Gas Supplier')+'</div>'+
+    '<div style="border-top:1px dashed '+c.textColor+';padding-top:5px;margin-bottom:5px;font-size:'+sz(12)+'px;text-align:center">'+dt+'</div>'+
+    '<div style="text-align:center;font-size:'+sz(14)+'px;font-weight:800;margin-bottom:8px">Bill # '+s.id+'</div>'+
+    '<div style="font-size:'+sz(18)+'px;font-weight:900;margin-bottom:4px;padding:5px;background:rgba(0,0,0,0.05);border-radius:4px">👤 '+s.name+'</div>'+
+    '<div style="font-size:'+sz(30)+'px;font-weight:900;text-align:center;margin:8px 0;padding:8px;background:rgba(0,0,0,0.08);border-radius:6px">Rs. '+amt+'</div>'+
+    (ph?'<div style="font-size:'+sz(16)+'px;text-align:center;font-weight:700">📞 '+ph+'</div>':'')+
+    (s.note?'<div style="font-size:'+sz(13)+'px;text-align:center;opacity:.8">📝 '+s.note+'</div>':'')+
+    nums+
+    '<div style="border-top:1px dashed '+c.textColor+';margin-top:10px;padding-top:6px;text-align:center;font-size:'+sz(12)+'px">'+(c.footer||'Shukriya!')+'</div></div>';
+}
+
+function updateTextSize(){
+  var v=document.getElementById('textSizeSlider').value;
+  appSettings.textScale=parseInt(v);
+  document.getElementById('textSizeValue').textContent=v+'%';
+  lsSet(LS.settings,appSettings);
+}
+function resetTextSize(){
+  appSettings.textScale=100;
+  document.getElementById('textSizeSlider').value=100;
+  document.getElementById('textSizeValue').textContent='100%';
+  lsSet(LS.settings,appSettings);
+  showToast('Text size reset');
+}
+function captureReceiptPNG(cid){
+  var el=document.getElementById(cid).querySelector('div');if(!el)return Promise.resolve(null);
+  return html2canvas(el,{scale:2,backgroundColor:null,useCORS:true}).then(function(c){return new Promise(function(r){c.toBlob(function(b){r(b)},'image/png')})}).catch(function(e){console.error(e);showToast('Capture failed','❌');return null});
+}
+function shareSlipPNG(){captureReceiptPNG('receiptRender').then(function(b){if(!b)return;var f=new File([b],'GGP_Slip_'+(currentHistorySlip?currentHistorySlip.id:'bill')+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Gillani Gas Point'}).then(function(){showToast('Shared!')}).catch(function(e){if(e.name!=='AbortError')downloadBlob(b,f.name)})}else{downloadBlob(b,f.name)}});}
+function shareHistoryPNG(){captureReceiptPNG('historyReceiptRender').then(function(b){if(!b)return;var f=new File([b],'GGP_Slip_'+(currentHistorySlip?currentHistorySlip.id:'bill')+'.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Gillani Gas Point'}).then(function(){showToast('Shared!')}).catch(function(e){if(e.name!=='AbortError')downloadBlob(b,f.name)})}else{downloadBlob(b,f.name)}});}
+function downloadBlob(b,n){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=n;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);showToast('Downloaded!','📥');}
+function shareHistoryWhatsApp(){
+  if(!currentHistorySlip)return;
+  var s=currentHistorySlip;
+  var t='🔥 *Gillani Gas Point*\n━━━━━━━━━━━━━━\n📄 *Bill:* #'+s.id+'\n👤 *Customer:* '+s.name+'\n💰 *Amount:* *Rs. '+formatAmount(s.amount)+'*';
+  if(s.phone)t+='\n📞 *Phone:* '+formatPhone(s.phone);
+  if(s.note)t+='\n📝 *Note:* '+s.note;
+  t+='\n🕒 '+getDateTime(s.timestamp)+'\n━━━━━━━━━━━━━━\n✨ Shukriya!';
+  window.open(s.phone?waLink(s.phone,t):('https://wa.me/?text='+encodeURIComponent(t)),'_blank');
+}
+
+function renderHistory(){
+  var q=(document.getElementById('historySearch')||{}).value||'';
+  q=q.toLowerCase().trim();
+  var list=appSlips;
+  if(q)list=list.filter(function(s){return s.name.toLowerCase().indexOf(q)>=0||s.id.indexOf(q)>=0||s.amount.indexOf(q)>=0});
+  var el=document.getElementById('historyList');
+  var empty=document.getElementById('historyEmpty');
+  if(list.length===0){el.innerHTML='';empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');
+  el.innerHTML=list.map(function(s){
+    return '<div class="card flex items-center justify-between cursor-pointer" style="padding:10px 12px" onclick="viewHistorySlip(\''+s.id+'\')">'+
+      '<div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-bold text-orange-400">#'+s.id+'</span><span class="text-[10px] text-slate-500">'+getDateTime(s.timestamp)+'</span></div>'+
+      '<div class="text-sm font-bold text-white truncate">'+s.name+'</div></div>'+
+      '<div class="flex items-center gap-2 flex-shrink-0 ml-2">'+
+      '<span class="text-sm font-extrabold text-green-400">Rs.'+formatAmount(s.amount)+'</span>'+
+      '<button onclick="event.stopPropagation();requestDelete(\'slip\',\''+s.id+'\')" class="text-slate-500 p-1">🗑️</button></div></div>';
+  }).join('');
+}
+function viewHistorySlip(id){
+  var slip=appSlips.find(function(s){return s.id===id});if(!slip)return;
+  currentHistorySlip=slip;
+  document.getElementById('historyReceiptRender').innerHTML=buildReceipt(slip);
+  openModal('historyDetailModal');
+}
+function addContact(){
+  var n=document.getElementById('contactName').value.trim();
+  var p=document.getElementById('contactPhone').value.trim();
+  if(!n||!p){showToast('Naam aur Phone zaruri!','⚠️');return}
+  appContacts.unshift({id:Date.now().toString(),name:n,phone:p});
+  lsSet(LS.contacts,appContacts);
+  document.getElementById('contactName').value='';
+  document.getElementById('contactPhone').value='';
+  renderContacts();showToast('Contact saved!');
+}
+function renderContacts(){
+  var q=(document.getElementById('contactSearch')||{}).value||'';
+  q=q.toLowerCase().trim();
+  var list=appContacts;
+  if(q)list=list.filter(function(c){return c.name.toLowerCase().indexOf(q)>=0||c.phone.indexOf(q)>=0});
+  var el=document.getElementById('contactList');
+  var empty=document.getElementById('contactEmpty');
+  if(list.length===0){el.innerHTML='';empty.classList.remove('hidden');return}
+  empty.classList.add('hidden');
+  el.innerHTML=list.map(function(c){
+    return '<div class="card flex items-center justify-between" style="padding:10px 12px">'+
+      '<div class="min-w-0 flex-1"><div class="text-sm font-bold text-white truncate">'+c.name+'</div><div class="text-xs text-slate-400">'+formatPhone(c.phone)+'</div></div>'+
+      '<div class="flex items-center gap-1.5 flex-shrink-0 ml-2">'+
+      '<a href="'+telLink(c.phone)+'" class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500/15 text-green-400">📞</a>'+
+      '<a href="'+waLink(c.phone,'Assalam o Alaikum!')+'" target="_blank" class="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500/15 text-green-400">💬</a>'+
+      '<button onclick="requestDelete(\'contact\',\''+c.id+'\')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/15 text-red-400">🗑️</button></div></div>';
+  }).join('');
+}
+
+var PRESETS=[
+  {id:'thermal_mega',name:'Thermal Mega',desc:'Ultra-large'},
+  {id:'thermal_pro',name:'Thermal Pro',desc:'Classic Grid'},
+  {id:'modern',name:'Modern',desc:'Slate'},
+  {id:'classic',name:'Classic',desc:'Serif'},
+  {id:'custom',name:'Custom',desc:'Yours'}
+];
+function renderPresets(){
+  var grid=document.getElementById('presetGrid');
+  grid.innerHTML=PRESETS.map(function(p){
+    var active=appSettings.preset===p.id;
+    return '<button onclick="selectPreset(\''+p.id+'\')" class="text-center rounded-lg p-2.5 border" style="background:'+(active?'rgba(249,115,22,.15)':'#0f172a')+';border-color:'+(active?'#f97316':'#334155')+'">'+
+      '<div class="text-xs font-bold '+(active?'text-orange-400':'text-slate-300')+'">'+p.name+'</div><div class="text-[10px] text-slate-500">'+p.desc+'</div></button>';
+  }).join('');
+  document.getElementById('customEditorCard').classList.toggle('hidden',appSettings.preset!=='custom');
+}
+function selectPreset(id){appSettings.preset=id;lsSet(LS.settings,appSettings);renderPresets();showToast('Design updated','🎨');}
+function toggleCustomEditor(){var b=document.getElementById('customEditorBody');var a=document.getElementById('customEditorArrow');b.classList.toggle('hidden');a.style.transform=b.classList.contains('hidden')?'':'rotate(180deg)';}
+function saveCustomDesign(){
+  appCustomDesign={shopName:document.getElementById('ceShopName').value,subtitle:document.getElementById('ceSubtitle').value,footer:document.getElementById('ceFooter').value,font:document.getElementById('ceFont').value,border:document.getElementById('ceBorder').value,bgColor:document.getElementById('ceBgColor').value,textColor:document.getElementById('ceTextColor').value};
+  lsSet(LS.customDesign,appCustomDesign);showToast('Saved!','🎨');
+}
+function loadSettingsUI(){
+  document.getElementById('showShopNums').checked=appSettings.showShopNums!==false;
+  document.getElementById('ceShopName').value=appCustomDesign.shopName||'';
+  document.getElementById('ceSubtitle').value=appCustomDesign.subtitle||'';
+  document.getElementById('ceFooter').value=appCustomDesign.footer||'';
+  document.getElementById('ceFont').value=appCustomDesign.font||"'Courier New',monospace";
+  document.getElementById('ceBorder').value=appCustomDesign.border||'solid';
+  document.getElementById('ceBgColor').value=appCustomDesign.bgColor||'#ffffff';
+  document.getElementById('ceTextColor').value=appCustomDesign.textColor||'#1a1a1a';
+  var ts=appSettings.textScale||100;
+  document.getElementById('textSizeSlider').value=ts;
+  document.getElementById('textSizeValue').textContent=ts+'%';
+}
+function saveSettings(){appSettings.showShopNums=document.getElementById('showShopNums').checked;lsSet(LS.settings,appSettings);showToast('Saved!');}
+
+function renderShopNumbers(){
+  var el=document.getElementById('shopNumbersList');
+  el.innerHTML=appShopNums.map(function(n,i){
+    return '<div class="flex items-center justify-between bg-slate-800/50 rounded-lg px-3 py-2"><div><div class="text-xs font-bold text-white">'+n.name+'</div><div class="text-[11px] text-slate-400">'+formatPhone(n.phone)+'</div></div><button onclick="removeShopNumber('+i+')" class="text-red-400 p-1">✕</button></div>';
+  }).join('');
+}
+function addShopNumber(){
+  var n=document.getElementById('shopNumName').value.trim();
+  var p=document.getElementById('shopNumPhone').value.trim();
+  if(!n||!p){showToast('Naam aur Phone dein!','⚠️');return}
+  appShopNums.push({name:n,phone:p});lsSet(LS.shopNumbers,appShopNums);
+  document.getElementById('shopNumName').value='';
+  document.getElementById('shopNumPhone').value='';
+  renderShopNumbers();showToast('Added!');
+}
+function removeShopNumber(i){appShopNums.splice(i,1);lsSet(LS.shopNumbers,appShopNums);renderShopNumbers();showToast('Removed');}
+
+function requestDelete(type,id){
+  currentDeleteAction={type:type,id:id};
+  var title='Delete Confirm',msg='Type "ok" to confirm';
+  if(type==='clearAll'){title='Sab Bills Delete?';msg='Type "ok" to delete ALL bills'}
+  if(type==='emptyTrash'){title='Empty Trash?';msg='Type "ok" to permanently delete'}
+  if(type==='trashPermanent'){title='Permanent Delete?';msg='Type "ok"'}
+  document.getElementById('deleteTitle').textContent=title;
+  document.getElementById('deleteMsg').textContent=msg;
+  document.getElementById('deleteConfirmInput').value='';
+  openModal('deleteModal');
+}
+function executeDelete(){
+  var inp=document.getElementById('deleteConfirmInput').value.trim().toLowerCase();
+  if(inp!=='ok'){showToast('Type "ok" to confirm!','⚠️');return}
+  var act=currentDeleteAction||{};
+  var type=act.type,id=act.id;
+  if(type==='slip'){
+    var idx=appSlips.findIndex(function(s){return s.id===id});
+    if(idx>-1){var r=appSlips.splice(idx,1)[0];r.deletedAt=Date.now();appDeletedSlips.push(r);lsSet(LS.slips,appSlips);lsSet(LS.deletedSlips,appDeletedSlips);showToast('Slip deleted');}
+    renderHistory();
+  }else if(type==='contact'){
+    var idx2=appContacts.findIndex(function(c){return c.id===id});
+    if(idx2>-1){var r2=appContacts.splice(idx2,1)[0];r2.deletedAt=Date.now();appDeletedContacts.push(r2);lsSet(LS.contacts,appContacts);lsSet(LS.deletedContacts,appDeletedContacts);showToast('Contact deleted');}
+    renderContacts();
+  }else if(type==='clearAll'){
+    appSlips.forEach(function(s){s.deletedAt=Date.now();appDeletedSlips.push(s)});
+    appSlips=[];lsSet(LS.slips,appSlips);lsSet(LS.deletedSlips,appDeletedSlips);
+    renderHistory();showToast('All cleared!');
+  }else if(type==='emptyTrash'){
+    appDeletedSlips=[];appDeletedContacts=[];
+    lsSet(LS.deletedSlips,appDeletedSlips);lsSet(LS.deletedContacts,appDeletedContacts);
+    renderTrash();showToast('Trash emptied!');
+  }else if(type==='trashPermanent'){
+    var parts=id.split('::');
+    if(parts[0]==='slip'){appDeletedSlips=appDeletedSlips.filter(function(s){return s.id!==parts[1]});lsSet(LS.deletedSlips,appDeletedSlips);}
+    else{appDeletedContacts=appDeletedContacts.filter(function(c){return c.id!==parts[1]});lsSet(LS.deletedContacts,appDeletedContacts);}
+    renderTrash();showToast('Deleted');
+  }
+  closeModal('deleteModal');currentDeleteAction=null;
+}
+function clearAllSlips(){if(appSlips.length===0){showToast('No bills','ℹ️');return}requestDelete('clearAll','all');}
+function openRecycleBin(){currentTrashView='slips';renderTrash();openModal('recycleBinModal');}
+function switchTrashView(v){
+  currentTrashView=v;
+  document.getElementById('trashSlipsBtn').style.borderColor=v==='slips'?'#f97316':'#334155';
+  document.getElementById('trashSlipsBtn').style.color=v==='slips'?'#f97316':'#94a3b8';
+  document.getElementById('trashContactsBtn').style.borderColor=v==='contacts'?'#f97316':'#334155';
+  document.getElementById('trashContactsBtn').style.color=v==='contacts'?'#f97316':'#94a3b8';
+  renderTrash();
+}
+function renderTrash(){
+  var el=document.getElementById('trashContent');
+  if(currentTrashView==='slips'){
+    if(appDeletedSlips.length===0){el.innerHTML='<div class="text-center py-6 text-slate-500 text-sm">🗑️ No deleted slips</div>';return}
+    el.innerHTML=appDeletedSlips.map(function(s){
+      var dl=Math.max(0,30-Math.floor((Date.now()-s.deletedAt)/(24*60*60*1000)));
+      return '<div class="card flex items-center justify-between" style="padding:10px 12px;opacity:.85"><div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-bold text-orange-400">#'+s.id+'</span><span class="text-[10px] text-red-400">'+dl+'d left</span></div><div class="text-sm font-bold text-white truncate">'+s.name+' -- Rs.'+formatAmount(s.amount)+'</div></div><div class="flex items-center gap-1.5 ml-2"><button onclick="restoreItem(\'slip\',\''+s.id+'\')" class="w-8 h-8 rounded-lg bg-green-500/15 text-green-400">♻️</button><button onclick="requestDelete(\'trashPermanent\',\'slip::'+s.id+'\')" class="w-8 h-8 rounded-lg bg-red-500/15 text-red-400">✕</button></div></div>';
+    }).join('');
+  }else{
+    if(appDeletedContacts.length===0){el.innerHTML='<div class="text-center py-6 text-slate-500 text-sm">🗑️ No deleted contacts</div>';return}
+    el.innerHTML=appDeletedContacts.map(function(c){
+      var dl=Math.max(0,30-Math.floor((Date.now()-c.deletedAt)/(24*60*60*1000)));
+      return '<div class="card flex items-center justify-between" style="padding:10px 12px;opacity:.85"><div class="flex-1 min-w-0"><div class="text-sm font-bold text-white truncate">'+c.name+'</div><div class="text-xs text-slate-400">'+formatPhone(c.phone)+'</div><div class="text-[10px] text-slate-500">'+dl+'d left</div></div><div class="flex items-center gap-1.5 ml-2"><button onclick="restoreItem(\'contact\',\''+c.id+'\')" class="w-8 h-8 rounded-lg bg-green-500/15 text-green-400">♻️</button><button onclick="requestDelete(\'trashPermanent\',\'contact::'+c.id+'\')" class="w-8 h-8 rounded-lg bg-red-500/15 text-red-400">✕</button></div></div>';
+    }).join('');
+  }
+}
+function restoreItem(type,id){
+  if(type==='slip'){
+    var i=appDeletedSlips.findIndex(function(s){return s.id===id});
+    if(i>-1){var it=appDeletedSlips.splice(i,1)[0];delete it.deletedAt;appSlips.unshift(it);lsSet(LS.slips,appSlips);lsSet(LS.deletedSlips,appDeletedSlips);showToast('Restored','♻️');}
+  }else{
+    var j=appDeletedContacts.findIndex(function(c){return c.id===id});
+    if(j>-1){var it2=appDeletedContacts.splice(j,1)[0];delete it2.deletedAt;appContacts.unshift(it2);lsSet(LS.contacts,appContacts);lsSet(LS.deletedContacts,appDeletedContacts);showToast('Restored','♻️');}
+  }
+  renderTrash();
+}
+function emptyTrash(){if(appDeletedSlips.length===0&&appDeletedContacts.length===0){showToast('Trash empty','ℹ️');return}requestDelete('emptyTrash','all');}
+
+function downloadStandaloneHTML(){
+  try{
+    showToast('Preparing...','⏳');
+    var bundle={ggp_slips:appSlips,ggp_contacts:appContacts,ggp_settings:appSettings,ggp_custom_design:appCustomDesign,ggp_shop_numbers:appShopNums,ggp_deleted_slips:appDeletedSlips,ggp_deleted_contacts:appDeletedContacts,ggp_counter:slipCounter,exported_at:new Date().toISOString()};
+    var html="<!DOCTYPE html>\n"+document.documentElement.outerHTML;
+    var js=JSON.stringify(bundle);
+    html=html.replace(/<script id="embeddedDataStore" type="application\/json">[\s\S]*?<\/script>/,'<script id="embeddedDataStore" type="application/json">'+js+'<\/script>');
+    var b=new Blob([html],{type:'text/html;charset=utf-8'});
+    var u=URL.createObjectURL(b);
+    var a=document.createElement('a');a.href=u;a.download='index.html';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+    showToast('Downloaded!','🌐');
+  }catch(e){console.error(e);showToast('Failed','❌');}
+}
+function downloadBackup(){
+  showToast('Preparing ZIP...','⏳');
+  var data={ggp_slips:appSlips,ggp_contacts:appContacts,ggp_settings:appSettings,ggp_custom_design:appCustomDesign,ggp_shop_numbers:appShopNums,ggp_deleted_slips:appDeletedSlips,ggp_deleted_contacts:appDeletedContacts,ggp_counter:slipCounter,backup_date:new Date().toISOString(),app_version:'5.8'};
+  var zip=new JSZip();zip.file("backup.json",JSON.stringify(data,null,2));
+  zip.generateAsync({type:"blob"}).then(function(c){
+    var d=new Date();
+    var fn='GGP_Backup_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.zip';
+    var u=URL.createObjectURL(c);
+    var a=document.createElement('a');a.href=u;a.download=fn;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+    showToast('ZIP Downloaded!','📦');
+  }).catch(function(e){console.error(e);showToast('Failed','❌');});
+}
+function restoreBackup(e){
+  var f=e.target.files[0];if(!f)return;
+  showToast('Reading...','⏳');
+  var promise;
+  if(f.name.endsWith('.zip')){
+    promise=JSZip.loadAsync(f).then(function(z){
+      var jf=z.file("backup.json")||Object.values(z.files).find(function(x){return x.name.endsWith('.json')});
+      if(!jf)throw new Error('no json in zip');
+      return jf.async('string');
+    });
+  }else{
+    promise=new Promise(function(res,rej){
+      var r=new FileReader();
+      r.onload=function(ev){res(ev.target.result)};
+      r.onerror=rej;
+      r.readAsText(f);
+    });
+  }
+  promise.then(function(txt){
+    var d=JSON.parse(txt);
+    if(d.ggp_slips)appSlips=d.ggp_slips;
+    if(d.ggp_contacts)appContacts=d.ggp_contacts;
+    if(d.ggp_settings)appSettings=d.ggp_settings;
+    if(d.ggp_custom_design)appCustomDesign=d.ggp_custom_design;
+    if(d.ggp_shop_numbers)appShopNums=d.ggp_shop_numbers;
+    if(d.ggp_deleted_slips)appDeletedSlips=d.ggp_deleted_slips;
+    if(d.ggp_deleted_contacts)appDeletedContacts=d.ggp_deleted_contacts;
+    if(d.ggp_counter)slipCounter=d.ggp_counter;
+    lsSet(LS.slips,appSlips);lsSet(LS.contacts,appContacts);lsSet(LS.settings,appSettings);
+    lsSet(LS.customDesign,appCustomDesign);lsSet(LS.shopNumbers,appShopNums);
+    lsSet(LS.deletedSlips,appDeletedSlips);lsSet(LS.deletedContacts,appDeletedContacts);lsSet(LS.counter,slipCounter);
+    syncCounter();purgeOldTrash();
+    renderHistory();renderContacts();renderPresets();renderShopNumbers();loadSettingsUI();
+    showToast('Restored!','✅');
+  }).catch(function(e){console.error(e);showToast('Invalid file','❌')});
+  e.target.value='';
+}
+
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===this)closeModal(this.id)});
+});
+document.getElementById('slipAmount').addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'');});
+
+// ═══════════════════════════════════════════════════════════
+// ★ CLOUD SYNC -- SUPABASE ★
+// ═══════════════════════════════════════════════════════════
+
+var sb=null;
+var sbReady=false;
+var currentUser=null;
+var offlineMode=false;
+try{offlineMode=localStorage.getItem(OFFLINE_MODE_KEY)==='1';}catch(e){}
+
+var Cloud={
+  enabled:true,
+  lastSync:0,
+  status:'idle',
+  autoTimer:null,
+  deviceName:(function(){
+    try{
+      var ua=navigator.userAgent;
+      if(/iPhone/i.test(ua))return 'iPhone';
+      if(/iPad/i.test(ua))return 'iPad';
+      if(/Android/i.test(ua))return 'Android';
+      if(/Mac/i.test(ua))return 'Mac';
+      if(/Windows/i.test(ua))return 'Windows';
+      return 'Device';
+    }catch(e){return 'Device';}
+  })()
+};
+try{Cloud.enabled=localStorage.getItem(SYNC_ENABLED_KEY)!=='0';}catch(e){}
+try{Cloud.lastSync=parseInt(localStorage.getItem(SYNC_LAST_KEY)||'0',10)||0;}catch(e){}
+
+function initSupabase(){
+  console.log('[GGP] initSupabase called. window.supabase =', typeof window.supabase);
+  if(typeof window.supabase==='undefined'||!window.supabase.createClient){
+    console.warn('[GGP] Supabase SDK not yet loaded, retrying in 500ms...');
+    setTimeout(initSupabase,500);
+    return;
+  }
+  try{
+    sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    sbReady=true;
+    console.log('[GGP] ✅ Supabase client created');
+    setAuthStatus('on','Connected to Supabase');
+    updateCloudUI();
+    afterSupabaseReady();
+  }catch(e){
+    console.error('[GGP] Supabase init failed:',e);
+    setAuthStatus('err','Init failed: '+e.message);
+  }
+}
+
+function afterSupabaseReady(){
+  // Setup auth listeners
+  sb.auth.onAuthStateChange(function(event,session){
+    console.log('[GGP] Auth event:',event,'user:',session&&session.user?session.user.email:'none');
+    if(event==='SIGNED_OUT'){onUserLoggedOut();}
+    else if(event==='SIGNED_IN'&&session&&session.user){onUserLoggedIn(session.user);}
+    else if(event==='TOKEN_REFRESHED'&&session&&session.user){currentUser=session.user;}
+    else if(event==='USER_UPDATED'&&session&&session.user){currentUser=session.user;}
+  });
+  // Check existing session
+  sb.auth.getSession().then(function(res){
+    var session=res.data?res.data.session:null;
+    if(session&&session.user){
+      console.log('[GGP] Existing session found:',session.user.email);
+      onUserLoggedIn(session.user);
+    }else{
+      console.log('[GGP] No session found');
+      if(offlineMode){hideAuthOverlay();}
+      else{openAuthOverlay();}
+    }
+  }).catch(function(e){
+    console.error('[GGP] getSession failed:',e);
+    if(!offlineMode)openAuthOverlay();
+  });
+}
+
+// ===== AUTH UI =====
+var authMode='login';
+
+function openAuthOverlay(){
+  var o=document.getElementById('authOverlay');
+  if(!o)return;
+  o.classList.add('show');
+  o.style.display='flex';
+  console.log('[GGP] Auth overlay opened');
+}
+function hideAuthOverlay(){
+  var o=document.getElementById('authOverlay');
+  if(!o)return;
+  o.classList.remove('show');
+  o.style.display='none';
+  console.log('[GGP] Auth overlay hidden');
+}
+function setAuthStatus(cls,text){
+  var dot=document.getElementById('authStatusDot');
+  var txt=document.getElementById('authStatusText');
+  if(dot)dot.className='dot '+(cls||'');
+  if(txt)txt.textContent=text||'';
+}
+function showAuthMsg(text,type){
+  var m=document.getElementById('authMsg');
+  if(!m)return;
+  m.textContent=text;
+  m.className='auth-msg show '+(type||'info');
+  console.log('[GGP] Auth message ['+(type||'info')+']:',text);
+}
+function clearAuthMsg(){
+  var m=document.getElementById('authMsg');
+  if(m)m.className='auth-msg';
+}
+function setAuthMode(mode){
+  authMode=mode;
+  document.querySelectorAll('.auth-tab').forEach(function(b){
+    b.classList.toggle('active',b.dataset.mode===mode);
+  });
+  var btn=document.getElementById('authSubmitBtn');
+  if(btn)btn.textContent=mode==='signup'?'Create Account':'Login';
+  var sub=document.getElementById('authSub');
+  if(sub)sub.textContent=mode==='signup'?'Naya account banayein':'Login karke data cloud pe sync karein';
+  clearAuthMsg();
+}
+
+// ===== AUTH SUBMIT =====
+function handleAuthSubmit(){
+  console.log('[GGP] handleAuthSubmit called, mode:',authMode);
+  if(!sbReady){
+    showAuthMsg('⏳ Supabase abhi load ho raha hai, 2 second wait karein...','info');
+    // Try again in 2s
+    setTimeout(function(){ if(sbReady) handleAuthSubmit(); }, 2000);
+    return;
+  }
+  var emailEl=document.getElementById('authEmail');
+  var passEl=document.getElementById('authPassword');
+  var email=(emailEl?emailEl.value:'').trim();
+  var password=passEl?passEl.value:'';
+
+  if(!email){showAuthMsg('Email daalein','error');return;}
+  if(!password){showAuthMsg('Password daalein','error');return;}
+  if(password.length<6){showAuthMsg('Password kam se kam 6 characters ka ho','error');return;}
+
+  var btn=document.getElementById('authSubmitBtn');
+  var orig=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='Please wait...';
+  showAuthMsg('Connecting to Supabase...','info');
+
+  var promise;
+  if(authMode==='signup'){
+    promise=sb.auth.signUp({email:email,password:password});
+  }else{
+    promise=sb.auth.signInWithPassword({email:email,password:password});
+  }
+
+  promise.then(function(res){
+    var data=res.data,error=res.error;
+    if(error){
+      console.error('[GGP] Auth error:',error);
+      var msg=error.message||'Auth failed';
+      // Friendly messages
+      if(msg.indexOf('Invalid login')>=0||msg.indexOf('invalid_credentials')>=0){
+        msg='❌ Email ya password galat hai.\n\n• Sign Up kiya tha?\n• Email confirm kiya tha?\n• Password sahi hai?';
+      }else if(msg.indexOf('Email not confirmed')>=0){
+        msg='📧 Email confirm nahi hua!\n\nApne email inbox kholein aur Supabase ka confirmation link dabayein.\n\nPhir login karein.';
+      }else if(msg.indexOf('User already registered')>=0){
+        msg='⚠️ Ye email pehle se registered hai.\n\nLogin tab pe jaake try karein.';
+      }else if(msg.indexOf('rate limit')>=0||msg.indexOf('too many')>=0){
+        msg='⏱️ Bohat zyada attempts. 1-2 minute wait karein.';
+      }else if(msg.indexOf('network')>=0||msg.indexOf('Failed to fetch')>=0){
+        msg='🌐 Internet connection check karein.\n\nSupabase tak nahi pahunch paye.';
+      }
+      showAuthMsg(msg,'error');
+      btn.disabled=false;
+      btn.textContent=orig;
+      return;
+    }
+
+    console.log('[GGP] Auth success:',data);
+    if(authMode==='signup'){
+      if(data.user&&!data.session){
+        showAuthMsg('✅ Account ban gaya!\n\n📧 Apna email inbox check karein aur Supabase ka confirmation link dabayein.\n\nPhir "Login" tab se login karein.','ok');
+        setAuthMode('login');
+      }else if(data.session){
+        showAuthMsg('✅ Account ban gaya! Login ho gaya.','ok');
+      }
+    }else{
+      showAuthMsg('✅ Login ho gaya!','ok');
+    }
+    btn.disabled=false;
+    btn.textContent=orig;
+  }).catch(function(e){
+    console.error('[GGP] Auth exception:',e);
+    showAuthMsg('❌ '+(e.message||'Network error')+'\n\nInternet check karein.','error');
+    btn.disabled=false;
+    btn.textContent=orig;
+  });
+}
+
+function handleForgotPassword(){
+  if(!sbReady){showAuthMsg('Supabase load ho raha hai...','info');return;}
+  var email=(document.getElementById('authEmail').value||'').trim();
+  if(!email){showAuthMsg('Pehle email daalein','error');return;}
+  showAuthMsg('Bhej rahe hain...','info');
+  sb.auth.resetPasswordForEmail(email).then(function(res){
+    if(res.error){showAuthMsg('❌ '+res.error.message,'error');return;}
+    showAuthMsg('✅ Password reset email bhej diya. Inbox check karein.','ok');
+  }).catch(function(e){showAuthMsg('❌ '+(e.message||'Failed'),'error');});
+}
+
+function continueOffline(){
+  offlineMode=true;
+  try{localStorage.setItem(OFFLINE_MODE_KEY,'1');}catch(e){}
+  hideAuthOverlay();
+  showToast('📴 Offline mode -- cloud sync nahi');
+  updateCloudUI();
+}
+
+function handleLogout(){
+  if(!sbReady)return;
+  sb.auth.signOut().then(function(){
+    offlineMode=false;
+    try{localStorage.removeItem(OFFLINE_MODE_KEY);}catch(e){}
+    showToast('👋 Logout ho gaya');
+    closeModal('cloudPanelModal');
+    updateCloudUI();
+  }).catch(function(e){
+    showToast('❌ Logout fail: '+e.message);
+  });
+}
+
+function onUserLoggedIn(user){
+  currentUser=user;
+  console.log('[GGP] ✅ Logged in:',user.email);
+  Cloud.enabled=true;
+  try{localStorage.setItem(SYNC_ENABLED_KEY,'1');}catch(e){}
+  hideAuthOverlay();
+  updateCloudUI();
+  setAuthStatus('on','Logged in as '+user.email);
+  // Pull cloud data
+  setTimeout(function(){
+    cloudRestore(true).then(function(found){
+      if(!found){
+        console.log('[GGP] Cloud empty -- pushing local');
+        cloudBackup(true);
+      }
+    });
+  },500);
+}
+
+function onUserLoggedOut(){
+  currentUser=null;
+  updateCloudUI();
+  console.log('[GGP] Logged out');
+  if(!offlineMode)openAuthOverlay();
+}
+
+// ===== TEST CONNECTION =====
+function testConnection(){
+  console.log('[GGP] Testing connection...');
+  if(!sbReady){
+    showToast('Supabase load nahi hua abhi','❌');
+    setAuthStatus('err','Supabase not loaded');
+    return;
+  }
+  setAuthStatus('loading','Testing...');
+  sb.auth.getSession().then(function(res){
+    if(res.error){
+      setAuthStatus('err','Error: '+res.error.message);
+      showToast('❌ '+res.error.message);
+    }else{
+      setAuthStatus('on','Connected ✓');
+      showToast('✅ Supabase connected','✅');
+    }
+  }).catch(function(e){
+    setAuthStatus('err','Network error');
+    showToast('❌ '+e.message);
+  });
+}
+
+// ===== CLOUD BACKUP =====
+function cloudReady(){return sbReady&&currentUser&&Cloud.enabled;}
+function userSyncKey(){return currentUser?'ggp-user-'+currentUser.id:'';}
+
+function getPayload(){
+  return {
+    ggp_slips:appSlips,ggp_contacts:appContacts,ggp_settings:appSettings,
+    ggp_custom_design:appCustomDesign,ggp_shop_numbers:appShopNums,
+    ggp_deleted_slips:appDeletedSlips,ggp_deleted_contacts:appDeletedContacts,
+    ggp_counter:slipCounter,
+    _meta:{updated_at:new Date().toISOString(),device:Cloud.deviceName,version:'5.8'}
+  };
+}
+function applyPayload(data){
+  if(!data||typeof data!=='object')return false;
+  if(data.ggp_slips)appSlips=data.ggp_slips;
+  if(data.ggp_contacts)appContacts=data.ggp_contacts;
+  if(data.ggp_settings)appSettings=data.ggp_settings;
+  if(data.ggp_custom_design)appCustomDesign=data.ggp_custom_design;
+  if(data.ggp_shop_numbers)appShopNums=data.ggp_shop_numbers;
+  if(data.ggp_deleted_slips)appDeletedSlips=data.ggp_deleted_slips;
+  if(data.ggp_deleted_contacts)appDeletedContacts=data.ggp_deleted_contacts;
+  if(data.ggp_counter)slipCounter=data.ggp_counter;
+  lsSet(LS.slips,appSlips);lsSet(LS.contacts,appContacts);lsSet(LS.settings,appSettings);
+  lsSet(LS.customDesign,appCustomDesign);lsSet(LS.shopNumbers,appShopNums);
+  lsSet(LS.deletedSlips,appDeletedSlips);lsSet(LS.deletedContacts,appDeletedContacts);lsSet(LS.counter,slipCounter);
+  syncCounter();
+  renderHistory();renderContacts();renderPresets();renderShopNumbers();loadSettingsUI();
+  return true;
+}
+
+function cloudBackup(silent){
+  if(!sbReady){if(!silent)showToast('Supabase ready nahi','⚠️');return Promise.resolve(false);}
+  if(!currentUser){if(!silent)showToast('Login karein','⚠️');return Promise.resolve(false);}
+  if(!silent&&!confirm('Saara data cloud pe upload karein?'))return Promise.resolve(false);
+  Cloud.status='syncing';updateCloudUI();
+  return sb.from('ggp_sync').upsert({
+    sync_key:userSyncKey(),
+    user_id:currentUser.id,
+    data:getPayload(),
+    device_name:Cloud.deviceName,
+    updated_at:new Date().toISOString()
+  },{onConflict:'sync_key'}).then(function(res){
+    if(res.error)throw res.error;
+    Cloud.status='ok';
+    Cloud.lastSync=Date.now();
+    try{localStorage.setItem(SYNC_LAST_KEY,String(Cloud.lastSync));}catch(e){}
+    updateCloudUI();
+    if(!silent)showToast('☁️ Backup done -- '+appSlips.length+' slips','☁️');
+    return true;
+  }).catch(function(e){
+    console.error('[GGP] Backup failed:',e);
+    Cloud.status='error';updateCloudUI();
+    if(!silent)showToast('❌ Backup fail: '+(e.message||e),'❌');
+    return false;
+  });
+}
+
+function cloudRestore(silent){
+  if(!sbReady){if(!silent)showToast('Supabase ready nahi','⚠️');return Promise.resolve(false);}
+  if(!currentUser){if(!silent)showToast('Login karein','⚠️');return Promise.resolve(false);}
+  Cloud.status='syncing';updateCloudUI();
+  return sb.from('ggp_sync').select('data, updated_at, device_name').eq('sync_key',userSyncKey()).maybeSingle().then(function(res){
+    if(res.error)throw res.error;
+    var data=res.data;
+    if(!data||!data.data){
+      Cloud.status='ok';updateCloudUI();
+      if(!silent)showToast('⚠️ Cloud pe data nahi mila','⚠️');
+      return false;
+    }
+    if(!silent){
+      var when=data.updated_at?new Date(data.updated_at).toLocaleString():'unknown';
+      var ok=confirm('Cloud se restore karein?\n\nLast updated: '+when+'\nFrom: '+(data.device_name||'unknown')+'\n\n⚠️ Local data REPLACE ho jayega.');
+      if(!ok){Cloud.status='idle';updateCloudUI();return false;}
+    }
+    var applied=applyPayload(data.data);
+    if(!applied)throw new Error('Invalid cloud data');
+    Cloud.status='ok';
+    Cloud.lastSync=Date.now();
+    try{localStorage.setItem(SYNC_LAST_KEY,String(Cloud.lastSync));}catch(e){}
+    updateCloudUI();
+    if(!silent)showToast('☁️ Restored -- '+appSlips.length+' slips','☁️');
+    return true;
+  }).catch(function(e){
+    console.error('[GGP] Restore failed:',e);
+    Cloud.status='error';updateCloudUI();
+    if(!silent)showToast('❌ Restore fail: '+(e.message||e),'❌');
+    return false;
+  });
+}
+
+function scheduleCloudSync(){
+  if(!cloudReady())return;
+  if(Cloud.autoTimer)clearTimeout(Cloud.autoTimer);
+  Cloud.autoTimer=setTimeout(function(){
+    Cloud.autoTimer=null;
+    cloudBackup(true).then(function(ok){if(ok)console.log('[GGP] Auto-sync done');});
+  },3000);
+}
+
+function toggleAutoSync(on){
+  Cloud.enabled=!!on;
+  try{localStorage.setItem(SYNC_ENABLED_KEY,Cloud.enabled?'1':'0');}catch(e){}
+  updateCloudUI();
+  showToast(Cloud.enabled?'☁️ Auto-sync ON':'⛔ Auto-sync OFF');
+  if(Cloud.enabled&&currentUser)scheduleCloudSync();
+}
+
+// ===== CLOUD UI =====
+function setCloudDot(cls){
+  var d=document.getElementById('cloudStatusDot');
+  if(d)d.className='dot '+(cls||'');
+  var hb=document.getElementById('cloudHeaderBtn');
+  if(hb){
+    if(cls==='on'){hb.style.borderColor='rgba(34,197,94,.4)';hb.style.color='#6ee7a0';}
+    else if(cls==='sync'){hb.style.borderColor='rgba(245,158,11,.4)';hb.style.color='#fbbf24';}
+    else if(cls==='err'){hb.style.borderColor='rgba(239,68,68,.4)';hb.style.color='#fca5a5';}
+    else{hb.style.borderColor='#334155';hb.style.color='#94a3b8';}
+  }
+}
+
+function updateCloudUI(){
+  var title=document.getElementById('cloudStatusTitle');
+  var desc=document.getElementById('cloudStatusDesc');
+  var outBtns=document.getElementById('cloudLoggedOutBtns');
+  var inBtns=document.getElementById('cloudLoggedInBtns');
+  var toggle=document.getElementById('cloudAutoSyncToggle');
+  if(!title)return;
+
+  if(!sbReady){
+    setCloudDot('err');
+    title.textContent='Supabase loading...';
+    desc.textContent='SDK load ho raha hai';
+    if(outBtns)outBtns.style.display='block';
+    if(inBtns)inBtns.style.display='none';
+    return;
+  }
+  if(!currentUser){
+    setCloudDot('');
+    title.textContent='Login zaroori';
+    desc.textContent='Cloud backup ke liye login karein';
+    if(outBtns)outBtns.style.display='block';
+    if(inBtns)inBtns.style.display='none';
+    return;
+  }
+  if(outBtns)outBtns.style.display='none';
+  if(inBtns)inBtns.style.display='block';
+  if(toggle)toggle.checked=Cloud.enabled;
+
+  if(Cloud.status==='syncing'){
+    setCloudDot('sync');
+    title.textContent='Syncing...';
+    desc.textContent=currentUser.email;
+  }else if(Cloud.status==='error'){
+    setCloudDot('err');
+    title.textContent='Last sync failed';
+    desc.textContent='Dobara try karein';
+  }else if(Cloud.lastSync){
+    setCloudDot('on');
+    title.textContent='Synced • '+currentUser.email;
+    desc.textContent='Last: '+new Date(Cloud.lastSync).toLocaleString();
+  }else{
+    setCloudDot('on');
+    title.textContent='Logged in • '+currentUser.email;
+    desc.textContent='Backup to Cloud dabayein';
+  }
+
+  var cpBody=document.getElementById('cloudPanelBody');
+  var cpModal=document.getElementById('cloudPanelModal');
+  if(cpBody&&cpModal&&cpModal.classList.contains('show')){
+    cpBody.innerHTML=cloudPanelHTML();
+  }
+}
+
+function cloudPanelHTML(){
+  var loggedIn=!!currentUser;
+  var email=loggedIn?currentUser.email:'Not logged in';
+  var st,sc;
+  if(!sbReady){st='Supabase loading...';sc='err';}
+  else if(!loggedIn){st='Login zaroori';sc='';}
+  else if(Cloud.status==='syncing'){st='Syncing...';sc='sync';}
+  else if(Cloud.status==='error'){st='Failed';sc='err';}
+  else if(Cloud.lastSync){st='Synced';sc='on';}
+  else{st='Ready';sc='on';}
+
+  var h='<div class="cloud-status-row"><span class="dot '+sc+'"></span><div class="info"><div class="t">'+st+'</div><div class="d">'+email+'</div></div></div>';
+  if(loggedIn){
+    h+='<div class="flex items-center justify-between mb-3 px-1"><span class="text-xs text-slate-300 font-semibold">Auto-Sync</span><label class="toggle-switch"><input type="checkbox" '+(Cloud.enabled?'checked':'')+' onchange="toggleAutoSync(this.checked)"><span class="sl"></span></label></div>';
+    h+='<button class="btn-primary w-full text-xs mb-2" onclick="cloudBackup(false)" style="background:linear-gradient(135deg,#22c55e,#16a34a)">☁️ Backup to Cloud</button>';
+    h+='<button class="btn-primary w-full text-xs mb-2" onclick="cloudRestore(false)" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">⬇️ Restore from Cloud</button>';
+    if(Cloud.lastSync)h+='<div class="text-[10px] text-slate-500 text-center mb-2">Last sync: '+new Date(Cloud.lastSync).toLocaleString()+'</div>';
+    h+='<button class="btn-ghost w-full text-xs" onclick="handleLogout()" style="border-color:rgba(239,68,68,.3);color:#fca5a5">🚪 Logout</button>';
+  }else{
+    h+='<button class="btn-primary w-full text-xs mb-2" onclick="closeModal(\'cloudPanelModal\');setTimeout(openAuthOverlay,200)" style="background:linear-gradient(135deg,#22c55e,#16a34a)">🔑 Login / Sign Up</button>';
+    h+='<button class="btn-ghost w-full text-xs" onclick="testConnection()">🔍 Test Connection</button>';
+  }
+  return h;
+}
+
+function openCloudPanel(){
+  var b=document.getElementById('cloudPanelBody');
+  if(b)b.innerHTML=cloudPanelHTML();
+  openModal('cloudPanelModal');
+}
+
+// ===== ATTACH AUTH LISTENERS =====
+function attachAuthListeners(){
+  console.log('[GGP] Attaching auth listeners');
+  document.querySelectorAll('.auth-tab').forEach(function(b){
+    b.addEventListener('click',function(){setAuthMode(this.dataset.mode);});
+  });
+  var submitBtn=document.getElementById('authSubmitBtn');
+  if(submitBtn)submitBtn.addEventListener('click',handleAuthSubmit);
+  var forgotBtn=document.getElementById('authForgotBtn');
+  if(forgotBtn)forgotBtn.addEventListener('click',handleForgotPassword);
+  var skipBtn=document.getElementById('authSkipBtn');
+  if(skipBtn)skipBtn.addEventListener('click',continueOffline);
+  var testBtn=document.getElementById('authTestBtn');
+  if(testBtn)testBtn.addEventListener('click',testConnection);
+
+  ['authEmail','authPassword'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')handleAuthSubmit();});
+  });
+}
+
+// ===== BOOT =====
+console.log('[GGP] === BOOT ===');
+attachAuthListeners();
+updateCloudUI();
+setAuthStatus('loading','Loading Supabase SDK...');
+// Show overlay if not offline
+if(!offlineMode){
+  setTimeout(function(){
+    if(!currentUser){
+      // If SDK still not ready after 1s, still show overlay
+      openAuthOverlay();
+    }
+  }, 600);
+}else{
+  hideAuthOverlay();
+}
+// Init supabase (with retry)
+initSupabase();
+
+// ===== PWA =====
+var PWA_STANDALONE=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true||document.referrer.indexOf('android-app://')===0;
+var deferredInstallPrompt=null;
+
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js',{scope:'./'}).then(function(r){console.log('[PWA] SW:',r.scope)}).catch(function(e){console.warn('[PWA] SW fail:',e)});
+  });
+}
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredInstallPrompt=e;
+  if(!PWA_STANDALONE)showInstallUI();
+});
+window.addEventListener('appinstalled',function(){
+  deferredInstallPrompt=null;hideInstallUI();
+  try{localStorage.setItem('ggp_install_done','1');}catch(e){}
+  showToast('App installed! 🎉','✅');
+});
+function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function showInstallUI(){
+  var b=document.getElementById('installBanner');
+  try{if(b&&!localStorage.getItem('ggp_install_dismissed'))b.classList.add('show');}catch(e){}
+  var btn=document.getElementById('installSettingsBtn');
+  if(btn){btn.disabled=false;btn.style.opacity='1';btn.textContent='📥 Install App';}
+}
+function hideInstallUI(){
+  var b=document.getElementById('installBanner');
+  if(b)b.classList.remove('show');
+  var btn=document.getElementById('installSettingsBtn');
+  if(btn){btn.disabled=true;btn.style.opacity='.55';btn.textContent='✅ App Installed';}
+}
+function dismissInstall(){
+  var b=document.getElementById('installBanner');
+  if(b)b.classList.remove('show');
+  try{localStorage.setItem('ggp_install_dismissed','1');}catch(e){}
+}
+function installPWA(){
+  if(PWA_STANDALONE){showToast('Already installed','✅');return;}
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(function(c){
+      if(c.outcome==='accepted')showToast('Installing...','⏳');
+      else showToast('Cancelled','ℹ️');
+    });
+    deferredInstallPrompt=null;hideInstallUI();return;
+  }
+  openInstallHelp();
+}
+function openInstallHelp(){
+  var body=document.getElementById('installHelpBody');
+  if(!body)return;
+  if(isIOS())body.innerHTML='<p class="mb-2 text-slate-400 text-xs">iPhone / iPad:</p><ol class="list-decimal ml-5 space-y-1.5"><li><b>Safari</b> mein kholein</li><li><b>Share</b> (⬆️) dabayein</li><li><b>"Add to Home Screen"</b></li><li><b>Add</b> tap karein</li></ol>';
+  else if(/Android/i.test(navigator.userAgent))body.innerHTML='<p class="mb-2 text-slate-400 text-xs">Android:</p><ol class="list-decimal ml-5 space-y-1.5"><li><b>Chrome</b> mein kholein</li><li><b>⋮</b> menu</li><li><b>"Install app"</b></li><li>Confirm karein</li></ol>';
+  else body.innerHTML='<p class="text-slate-400 text-xs">Desktop: Address bar ke right <b>Install</b> icon dabayein.</p>';
+  openModal('installHelpModal');
+}
+if(PWA_STANDALONE)hideInstallUI();
+
+// ===== INITIAL RENDER =====
+renderPresets();
+renderShopNumbers();
+loadSettingsUI();
+</script>
+</body>
+</html>
